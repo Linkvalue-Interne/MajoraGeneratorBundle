@@ -1,0 +1,28 @@
+{
+    "name":         "majora/generator-bundle",
+    "version":      "1.0",
+    "description":  "Config, code and template generator for Symfony 2",
+    "keywords":     ["generator", "Symfony", "bundle"],
+    "type":         "symfony-bundle",
+    "license":      "MIT",
+    "authors":     [
+        {
+            "name":     "Quentin Cerny",
+            "email":    "quentin.cerny@gmail.com",
+            "homepage": "https://github.com/Nyxis"
+        },
+        {
+            "name":     "LinkValue",
+            "email":    "contact@link-value.fr",
+            "homepage": "http://link-value.fr/"
+        }
+    ],
+    "require":      {
+        "php": ">=5.3.3",
+        "symfony/symfony": "*"
+    },
+    "autoload": {
+        "psr-0": { "Majora\\GeneratorBundle": "" }
+    },
+    "target-dir": "Majora/GeneratorBundle"
+}

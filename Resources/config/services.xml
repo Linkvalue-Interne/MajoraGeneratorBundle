@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <!-- Generator -->
+        <service id="majora.generator" class="Majora\GeneratorBundle\Generator\FileGenerator">
+            <argument><!-- skeletons directory path --></argument>
+            <argument><!-- generated files directory path --></argument>
+            <argument type="service" id="filesystem" />
+            <argument type="service" id="logger" />
+        </service>
+
+        <!-- Aliases modifier -->
+        <service id="majora.generator.aliases_modifier" class="Majora\GeneratorBundle\Generator\ContentModifier\ServiceAliasesModifier" public="false">
+            <tag name="majora.generator.content_modifier" alias="aliases" />
+        </service>
+
+        <!-- Config node modifier -->
+        <service id="majora.generator.configuration_node_modifier" class="Majora\GeneratorBundle\Generator\ContentModifier\ConfigurationNodeModifier" public="false">
+            <tag name="majora.generator.content_modifier" alias="configuration_node" />
+        </service>
+
+        <!-- App kernel modifier -->
+        <service id="majora.generator.update_kernel_modifier" class="Majora\GeneratorBundle\Generator\ContentModifier\RegisterBundleModifier" public="false">
+            <tag name="majora.generator.content_modifier" alias="register_bundle" />
+            <argument>%kernel.root_dir%/AppKernel.php</argument>
+            <argument type="service" id="logger" />
+        </service>
+
+        <!-- App routing modifier -->
+        <service id="majora.generator.app_routing_modifier" class="Majora\GeneratorBundle\Generator\ContentModifier\UpdateRoutingModifier" public="false">
+            <tag name="majora.generator.content_modifier" alias="update_routing" />
+            <argument>%kernel.root_dir%/config/routing.yml</argument>
+            <argument type="service" id="logger" />
+        </service>
+
+    </services>
+
+</container>
