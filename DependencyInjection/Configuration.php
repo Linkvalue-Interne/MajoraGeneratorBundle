@@ -18,8 +18,8 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $treeBuilder
-            ->root('majora_generator')
+        $treeBuilder->root('majora_generator')
+            ->children()
                 ->scalarNode('skeletons_path')
                     ->isRequired()->cannotBeEmpty()
                 ->end()
