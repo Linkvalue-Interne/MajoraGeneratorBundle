@@ -28,18 +28,24 @@ class FileGenerator
      * @param string          $targetDir
      * @param Filesystem      $filesystem
      * @param LoggerInterface $logger
+     * @param array           $contentModifiers
      */
     public function __construct(
         $skeletonsDir,
         $targetDir,
         Filesystem      $filesystem,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        array           $contentModifiers
     ) {
         $this->skeletonsPath    = realpath($skeletonsDir);
         $this->targetPath       = realpath($targetDir);
         $this->filesystem       = $filesystem;
         $this->logger           = $logger;
+
         $this->contentModifiers = new ArrayCollection();
+        foreach ($contentModifiers as $alias => $contentModifier) {
+            $this->registerContentModifier($alias, $contentModifier);
+        }
     }
 
     /**
@@ -78,24 +84,24 @@ class FileGenerator
      */
     protected function getMetadata($templateFileContent)
     {
-        $regex                = '/majora_generator\.([a-z0-9_]+)\:\s*([\w]+)/';
-        $templateFileMetadata = array(
-            'force_generation' => false,
-            'content_modifier' => array(),
-        );
-
+        $regex                = '/\@MajoraGenerator\((.+)\)/';
+        $templateFileMetadata = array('force_generation' => false);
         if (!preg_match_all($regex, $templateFileContent, $matches, PREG_SET_ORDER)) {
             return $templateFileMetadata;
         }
-
         foreach ($matches as $match) {
-            if (!array_key_exists($match[1], $templateFileMetadata)) {
-                continue;
+            if (null === $metadata = json_decode($match[1], true)) {
+                throw new \InvalidArgumentException(sprintf(
+                    'Invalid annotation json data, error %s : %s',
+                    json_last_error(),
+                    json_last_error_msg()
+                ));
             }
 
-            $templateFileMetadata[$match[1]][] = is_bool($match[2]) ?
-                ((bool) $match[2]) === true : $match[2]
-            ;
+            $templateFileMetadata =  array_replace_recursive(
+                $templateFileMetadata,
+                $metadata
+            );
         }
 
         return $templateFileMetadata;
@@ -120,24 +126,28 @@ class FileGenerator
     /**
      * run content modifiers on given file content.
      *
-     * @param string      $fileContent
+     * @param SplFileInfo $generatedFile
      * @param SplFileInfo $templateFile
      * @param array       $modifiers
      * @param Inflector   $inflector
      *
      * @return string
      */
-    public function modify($fileContent, SplFileInfo $templateFile, array $modifiers, Inflector $inflector)
+    public function modify(SplFileInfo $generatedFile, SplFileInfo $templateFile, array $modifiers, Inflector $inflector)
     {
-        foreach ($modifiers as $modifierAlias) {
-            if (($modifier = $this->contentModifiers->get($modifierAlias))
-                && $modifier->supports($templateFile, $fileContent, $inflector)
-            ) {
-                $fileContent = $modifier->modify($fileContent, $inflector);
+        foreach ($modifiers as $modifierAlias => $modifierData) {
+            if ($modifier = $this->contentModifiers->get($modifierAlias)) {
+                $this->filesystem->dumpFile(
+                    $generatedFile->getRealPath(),
+                    $modifier->modify(
+                        $generatedFile,
+                        is_array($modifierData) ? $modifierData : array(),
+                        $inflector,
+                        $templateFile
+                    )
+                );
             }
         }
-
-        return $fileContent;
     }
 
     public function generate($entity, $namespace)
@@ -147,10 +157,13 @@ class FileGenerator
             'MajoraEntity'    => $entity,
             'MajoraNamespace' => $namespace,
         ));
+        $modifiersStack = array();
 
         // create file tree
         foreach ($finder->in($this->skeletonsPath) as $templateFile) {
+
             $generatedFilePath = $this->generatePath($templateFile, $inflector);
+            $generatedFile     = new SplFileInfo($generatedFilePath, '', '');
 
             // directory
             if ($templateFile->isDir()) {
@@ -160,37 +173,50 @@ class FileGenerator
             }
 
             // file
-            $fileContent      = $templateFile->getContents();
+
+            $fileContent = $inflector->translate($templateFile->getContents());
+
+            // always read template file metadata
+            $metadata    = $this->getMetadata($fileContent);
+
+            $forceGeneration = !empty($metadata['force_generation']);
+            unset($metadata['force_generation']);
+
+            $modifyContent = count($metadata);
+
+
+
             $alreadyGenerated = $this->filesystem->exists($generatedFilePath);
 
-            $metadata         = $this->getMetadata($fileContent);
-            $forceGeneration  = !empty($metadata['force_generation']);
-            $modifyContent    = !empty($metadata['content_modifier']);
 
-            // have to touch existing file ?
-            if ($alreadyGenerated && !$forceGeneration && !$modifyContent) {
-                continue;
-            }
 
             // contents needs to be updated ?
             if ($alreadyGenerated && $modifyContent) {
-                $fileContent = (new SplFileInfo($generatedFilePath, '', ''))->getContents();
+                $fileContent = $generatedFile->getContents();
             }
 
-            $this->filesystem->dumpFile(
-                $generatedFilePath,
-                $this->modify(
-                    $inflector->translate($fileContent),
-                    $templateFile,
-                    $metadata['content_modifier'],
-                    $inflector
-                )
+            // stack content modifiers
+            $modifiersStack[] = array(
+                array($this, 'modify'),
+                array($generatedFile, $templateFile, $metadata, $inflector)
             );
 
+            // have to touch existing file ?
+            if ($alreadyGenerated && !$forceGeneration) {
+                continue;
+            }
+
+            $this->filesystem->dumpFile($generatedFilePath, $fileContent);
+
             $this->logger->info(sprintf('file %s : %s',
-                $forceGeneration ? 'forced' : ($alreadyGenerated ? 'updated' : 'created'),
+                $forceGeneration ? 'forced' : 'created',
                 $generatedFilePath
             ));
+        }
+
+        // unstack all modifiers
+        foreach ($modifiersStack as $modifierCallback) {
+            call_user_func_array($modifierCallback[0], $modifierCallback[1]);
         }
     }
 }

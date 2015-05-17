@@ -12,30 +12,42 @@
             <argument><!-- generated files directory path --></argument>
             <argument type="service" id="filesystem" />
             <argument type="service" id="logger" />
+
+            <!-- Content modifiers -->
+            <argument type="collection">
+
+                <!-- App kernel modifier -->
+                <argument key="register_bundle" type="service">
+                    <service parent="majora.generator.abstract_modifier"
+                        class="Majora\GeneratorBundle\Generator\ContentModifier\RegisterBundleModifier"
+                    />
+                </argument>
+
+                <!-- Routing modifier -->
+                <argument key="include_routing" type="service">
+                    <service parent="majora.generator.abstract_modifier"
+                        class="Majora\GeneratorBundle\Generator\ContentModifier\UpdateRoutingModifier"
+                    />
+                </argument>
+
+                <!-- Xml Services importer -->
+                <argument key="import_xml_services" type="service">
+                    <service parent="majora.generator.abstract_modifier"
+                        class="Majora\GeneratorBundle\Generator\ContentModifier\ImportXmlServicesModifier"
+                    />
+                </argument>
+
+            </argument>
         </service>
 
-        <!-- Aliases modifier -->
-        <service id="majora.generator.aliases_modifier" class="Majora\GeneratorBundle\Generator\ContentModifier\ServiceAliasesModifier" public="false">
-            <tag name="majora.generator.content_modifier" alias="aliases" />
-        </service>
-
-        <!-- Config node modifier -->
-        <service id="majora.generator.configuration_node_modifier" class="Majora\GeneratorBundle\Generator\ContentModifier\ConfigurationNodeModifier" public="false">
-            <tag name="majora.generator.content_modifier" alias="configuration_node" />
-        </service>
-
-        <!-- App kernel modifier -->
-        <service id="majora.generator.update_kernel_modifier" class="Majora\GeneratorBundle\Generator\ContentModifier\RegisterBundleModifier" public="false">
-            <tag name="majora.generator.content_modifier" alias="register_bundle" />
-            <argument>%kernel.root_dir%/AppKernel.php</argument>
+        <!-- Abstract content modifier definition -->
+        <service id="majora.generator.abstract_modifier" abstract="true" public="false">
+            <argument type="service" id="filesystem" />
             <argument type="service" id="logger" />
-        </service>
-
-        <!-- App routing modifier -->
-        <service id="majora.generator.app_routing_modifier" class="Majora\GeneratorBundle\Generator\ContentModifier\UpdateRoutingModifier" public="false">
-            <tag name="majora.generator.content_modifier" alias="update_routing" />
-            <argument>%kernel.root_dir%/config/routing.yml</argument>
-            <argument type="service" id="logger" />
+            <call method="setUp">
+                <argument>%kernel.root_dir%</argument>
+                <argument type="service" id="file_locator" />
+            </call>
         </service>
 
     </services>

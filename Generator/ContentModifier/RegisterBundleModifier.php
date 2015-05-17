@@ -2,96 +2,104 @@
 
 namespace Majora\GeneratorBundle\Generator\ContentModifier;
 
-use Majora\GeneratorBundle\Generator\ContentModifierInterface;
+use Majora\GeneratorBundle\Generator\ContentModifier\AbstractContentModifier;
 use Majora\GeneratorBundle\Generator\Inflector;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * Service for updating kernel from a bundle class.
  */
-class RegisterBundleModifier
-    implements ContentModifierInterface
+class RegisterBundleModifier extends AbstractContentModifier
 {
-    protected $kernelPath;
+    protected $kernelDir;
+    protected $filesystem;
     protected $logger;
-
-    protected $currentBundleNamespace;
-    protected $currentBundleClass;
-    protected $currentNamespace;
+    protected $resolver;
 
     /**
      * construct.
      *
-     * @param string          $kernelPath
+     * @param Filesystem      $filesystem
      * @param LoggerInterface $logger
      */
-    public function __construct($kernelPath, LoggerInterface $logger)
+    public function __construct(Filesystem $filesystem, LoggerInterface $logger)
     {
-        $this->kernelPath = $kernelPath;
         $this->logger     = $logger;
-    }
+        $this->filesystem = $filesystem;
 
-    /**
-     * @see ContentModifierInterface::supports()
-     */
-    public function supports(SplFileInfo $fileinfo, $currentContent, Inflector $inflector)
-    {
-        $this->currentBundleNamespace = null;
-        $this->currentBundleClass     = null;
-        $this->currentNamespace       = null;
-
-        if (!preg_match(
-            sprintf('/namespace (.*%s.*Bundle);/', $inflector->translate('MajoraNamespace')),
-            $currentContent,
-            $matches
-        )) {
-            return false;
-        }
-
-        $this->currentBundleNamespace = $matches[1];
-
-        if (!preg_match(
-            sprintf('/class (([\w]*)%s[\w]*Bundle) extends /', $inflector->translate('MajoraNamespace')),
-            $currentContent,
-            $matches
-        )) {
-            return false;
-        }
-
-        $this->currentBundleClass = $matches[1];
-        $this->currentNamespace   = $matches[2];
-
-        return
-            // is bundle not already registered
-            strpos(
-                file_get_contents($this->kernelPath),
-                sprintf('%s\%s()', $this->currentBundleNamespace, $this->currentBundleClass)
-            ) === false
-        ;
+        $this->resolver = new OptionsResolver();
+        $this->resolver->setDefaults(array(
+            'kernel_filename' => 'AppKernel.php'
+        ));
     }
 
     /**
      * @see ContentModifierInterface::modify()
      */
-    public function modify($fileContent, Inflector $inflector)
+    public function modify(SplFileInfo $generatedFile, array $data, Inflector $inflector, SplFileInfo $templateFile)
     {
-        file_put_contents(
-            $this->kernelPath,
-            str_replace(
-                sprintf("// %s\n", $this->currentNamespace),
-                sprintf("// %s
-            new %s\%s(),\n",
-                    $this->currentNamespace,
-                    $this->currentBundleNamespace,
-                    $this->currentBundleClass
+        $options     = $this->resolver->resolve($data);
+        $fileContent = $generatedFile->getContents();
+
+        // current file is a bundle ?
+        $isInBundle = preg_match(
+            sprintf('/namespace (.*%s.*Bundle);/', $inflector->translate('MajoraNamespace')),
+            $fileContent,
+            $inBundleMatches
+        );
+        $isABundle = preg_match(
+            sprintf(
+                '/class (([\w]*)%s[\w]*Bundle) extends [\w]*Bundle/',
+                $inflector->translate('MajoraNamespace')
+            ),
+            $fileContent,
+            $isBundleMatches
+        );
+        if (!$isInBundle || !$isABundle) {
+            $this->logger->notice(sprintf(
+                'Try to register "%s" file into Kernel which isnt a bundle. Abording.',
+                $generatedFile->getFilename()
+            ));
+
+            return $fileContent;
+        }
+
+        $bundleInclusion = sprintf('new %s\\%s(),',
+            $inBundleMatches[1], $isBundleMatches[1]
+        );
+
+        $kernelFile = new SplFileInfo(
+            sprintf('%s/%s', $this->kernelDir, $options['kernel_filename']),
+            '', ''
+        );
+        $kernelContent = $kernelFile->getContents();
+
+        // is bundle not already registered ?
+        if (strpos($kernelContent, $bundleInclusion) !== false) {
+            $this->logger->debug(sprintf(
+                'Bundle "%s" is already registered. Abording.',
+                $generatedFile->getFilename()
+            ));
+            return $fileContent;
+        }
+
+        $this->filesystem->dumpFile(
+            $kernelFile->getPathname(),
+            preg_replace(
+                '/(Bundle\(\)\,)(\n[\s]+\);)/',
+                sprintf("$1
+            %s$2",
+                    $bundleInclusion
                 ),
-                file_get_contents($this->kernelPath)
+                $kernelContent
             )
         );
 
         $this->logger->info(sprintf('file updated : %s',
-            $this->kernelPath
+            $kernelFile->getPathname()
         ));
 
         return $fileContent;

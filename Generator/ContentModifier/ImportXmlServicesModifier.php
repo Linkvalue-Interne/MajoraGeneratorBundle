@@ -5,16 +5,14 @@ namespace Majora\GeneratorBundle\Generator\ContentModifier;
 use Majora\GeneratorBundle\Generator\ContentModifier\AbstractContentModifier;
 use Majora\GeneratorBundle\Generator\Inflector;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Config\FileLocatorInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Service for updating main routing from a bundle routing file.
+ * Modifier which importe services xml files into another
  */
-class UpdateRoutingModifier extends AbstractContentModifier
+class ImportXmlServicesModifier extends AbstractContentModifier
 {
     protected $filesystem;
     protected $logger;
@@ -26,21 +24,17 @@ class UpdateRoutingModifier extends AbstractContentModifier
      * @param Filesystem      $filesystem
      * @param LoggerInterface $logger
      */
-    public function __construct(
-        Filesystem      $filesystem,
-        LoggerInterface $logger
-    )
+    public function __construct(Filesystem $filesystem, LoggerInterface $logger)
     {
-        $this->filesystem  = $filesystem;
-        $this->logger      = $logger;
+        $this->logger     = $logger;
+        $this->filesystem = $filesystem;
 
         $this->resolver = new OptionsResolver();
         $this->resolver->setDefaults(array(
-            'target' => '/config/routing.yml',
-            'prefix' => null,
+            'target' => '../services.xml'
         ));
         $this->resolver->setRequired(array(
-            'resource', 'route'
+            'resource'
         ));
     }
 
@@ -52,45 +46,41 @@ class UpdateRoutingModifier extends AbstractContentModifier
         $options = $this->resolver->resolve($data);
 
         // retrieve target location
-        $targetRoutingFilepath = $this->resolveTargetFilePath(
+        $targetServicesFilepath = $this->resolveTargetFilePath(
             $options['target'],
             $generatedFile->getPath()
         );
 
         // build content
-        $routing = sprintf('
-%s:
-    resource: "%s"
-    %s',
-            $inflector->translate($options['route']),
-            $inflector->translate($options['resource']),
-            is_null($options['prefix']) ? '' : sprintf(
-                "prefix: %s\n",
-                $inflector->translate($options['prefix'])
-            )
+        $import = sprintf('<import resource="%s" />',
+            $inflector->translate($options['resource'])
         );
 
-        $routingFile = new SplFileInfo($targetRoutingFilepath, '', '');
-        $routingContent = $routingFile->getContents();
+        $servicesFile = new SplFileInfo($targetServicesFilepath, '', '');
+        $servicesContent = $servicesFile->getContents();
 
-        // is routing not already registered ?
-        if (strpos($routingContent, $routing) !== false) {
+        // are services not already registered ?
+        if (strpos($servicesContent, $import) !== false) {
             $this->logger->debug(sprintf(
-                'Routing file "%s" is already registered into "%s". Abording.',
+                'Service file "%s" is already registered into "%s". Abording.',
                 $generatedFile->getFilename(),
-                $targetRoutingFilepath
+                $targetServicesFilepath
             ));
 
             return $generatedFile->getContents();
         }
 
         $this->filesystem->dumpFile(
-            $routingFile->getRealpath(),
-            sprintf('%s%s', $routingContent, $routing)
+            $servicesFile->getRealpath(),
+            str_replace(
+                '    </imports>',
+                sprintf("        %s\n    </imports>", $import),
+                $servicesContent
+            )
         );
 
         $this->logger->info(sprintf('file updated : %s',
-            $routingFile->getRealpath()
+            $servicesFile->getRealpath()
         ));
 
         return $generatedFile->getContents();
