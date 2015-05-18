@@ -14,7 +14,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class RegisterBundleModifier extends AbstractContentModifier
 {
-    protected $kernelDir;
     protected $filesystem;
     protected $logger;
     protected $resolver;

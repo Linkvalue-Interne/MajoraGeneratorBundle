@@ -37,6 +37,13 @@
                     />
                 </argument>
 
+                <!-- Doctrine Em modifier -->
+                <argument key="register_doctrine_em" type="service">
+                    <service parent="majora.generator.abstract_modifier"
+                        class="Majora\GeneratorBundle\Generator\ContentModifier\RegisterDoctrineEmModifier"
+                    />
+                </argument>
+
             </argument>
         </service>
 
