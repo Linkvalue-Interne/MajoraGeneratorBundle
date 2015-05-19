@@ -74,7 +74,7 @@ class UpdateRoutingModifier extends AbstractContentModifier
         $routingContent = $routingFile->getContents();
 
         // is routing not already registered ?
-        if (strpos($routingContent, $routing) !== false) {
+        if (strpos($routingContent, trim($routing)) !== false) {
             $this->logger->debug(sprintf(
                 'Routing file "%s" is already registered into "%s". Abording.',
                 $generatedFile->getFilename(),

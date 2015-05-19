@@ -63,15 +63,17 @@ class FileGenerator
      * generate targer file path from source path.
      *
      * @param SplFileInfo $fileinfo
+     * @param string      $skeletonPath
+     * @param string      $targetPath
      * @param Inflector   $inflector
      *
      * @return string
      */
-    protected function generatePath(SplFileInfo $fileinfo, Inflector $inflector)
+    protected function generatePath(SplFileInfo $fileinfo, $skeletonPath, $targetPath, Inflector $inflector)
     {
         return $inflector->translate(sprintf('%s%s',
-            $this->targetPath,
-            str_replace($this->skeletonsPath, '', $fileinfo->getRealPath())
+            $targetPath,
+            str_replace($skeletonPath, '', $fileinfo->getRealPath())
         ));
     }
 
@@ -150,30 +152,62 @@ class FileGenerator
         }
     }
 
-    public function generate($entity, $namespace)
+    /**
+     * generate classes from given namespace/entity, using given srcDir (or default one)
+     * into given destDir (or default one)
+     *
+     * @param string $namespace
+     * @param string $entity
+     * @param string $skeletonsPath
+     * @param string $targetPath
+     * @param array  $excludedSkeletons
+     */
+    public function generate(
+        $namespace,
+        $entity,
+        $skeletonsPath = null,
+        $targetPath    = null,
+        array $excludedSkeletons
+    )
     {
-        $finder    = new Finder();
-        $inflector = new Inflector(array(
+        $skeletonsPath = $skeletonsPath ?: $this->skeletonsPath;
+        $targetPath    = $targetPath ?: $this->targetPath;
+        $finder        = new Finder();
+        $inflector     = new Inflector(array(
             'MajoraEntity'    => $entity,
             'MajoraNamespace' => $namespace,
         ));
         $modifiersStack = array();
 
         // create file tree
-        foreach ($finder->in($this->skeletonsPath) as $templateFile) {
+        $finder->in($skeletonsPath);
+        array_map(
+            function($excludedSkeleton) use ($finder) {
+                $finder->notPath($excludedSkeleton);
+            },
+            $excludedSkeletons
+        );
+        foreach ($finder as $templateFile) {
 
-            $generatedFilePath = $this->generatePath($templateFile, $inflector);
-            $generatedFile     = new SplFileInfo($generatedFilePath, '', '');
+            $generatedFile = new SplFileInfo(
+                $generatedFilePath = $this->generatePath(
+                    $templateFile,
+                    realpath($skeletonsPath),
+                    realpath($targetPath),
+                    $inflector
+                ),
+                '',
+                ''
+            );
 
-            // directory
+            // directory ---------------------------------------------------------
             if ($templateFile->isDir()) {
                 $this->generateDir($generatedFilePath);
 
                 continue;
             }
 
-            // file
-
+            // file --------------------------------------------------------------
             $fileContent = $inflector->translate($templateFile->getContents());
 
             // always read template file metadata
@@ -184,11 +218,7 @@ class FileGenerator
 
             $modifyContent = count($metadata);
 
-
-
             $alreadyGenerated = $this->filesystem->exists($generatedFilePath);
-
-
 
             // contents needs to be updated ?
             if ($alreadyGenerated && $modifyContent) {

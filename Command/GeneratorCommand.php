@@ -20,17 +20,36 @@ class GeneratorCommand extends ContainerAwareCommand
             ->setDescription(
                 'Generate whole directory structure from skeletons for given entity and namespace'
             )
+            ->addArgument('namespace', InputArgument::REQUIRED, 'Namespace to put entity into')
             ->addArgument('entity', InputArgument::REQUIRED, 'Entity to generate')
-            ->addArgument('namespace', InputArgument::OPTIONAL, 'Namespace to put entity into (default : same as entity)')
-            ->addOption('force', null, InputOption::VALUE_REQUIRED, 'Force file generation', false)
-         ;
+            ->addOption('skeletons', null, InputOption::VALUE_REQUIRED, 'Skeleton directory', null)
+            ->addOption('target', null, InputOption::VALUE_REQUIRED, 'Target generation directory', null)
+            ->addOption('exclude', null, InputOption::VALUE_REQUIRED, 'Coma separated skeleton dirs to exclude', '')
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->getContainer()->get('majora.generator')->generate(
+            $input->getArgument('namespace'),
             $input->getArgument('entity'),
-            $input->getArgument('namespace') ? $input->getArgument('namespace') : $input->getArgument('entity')
+            $input->getOption('skeletons') ?
+                realpath(sprintf('%s/../%s',
+                    $this->getContainer()->getParameter('kernel.root_dir'),
+                    $input->getOption('skeletons')
+                )) :
+                null
+            ,
+            $input->getOption('target') ?
+                realpath(sprintf('%s/../%s',
+                    $this->getContainer()->getParameter('kernel.root_dir'),
+                    $input->getOption('target')
+                )) :
+                null
+            ,
+            $input->getOption('exclude') ?
+                explode(',', $input->getOption('exclude')) :
+                array()
         );
     }
 }
