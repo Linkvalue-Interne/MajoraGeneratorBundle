@@ -35,7 +35,7 @@ class RegisterDoctrineEmModifier extends AbstractContentModifier
             'relative_schema_directory' => 'Resources/config/doctrine',
         ));
         $this->resolver->setRequired(array(
-            'em', 'prefix', 'bundle'
+            'em', 'prefix', 'bundle', 'alias'
         ));
     }
 
@@ -56,17 +56,20 @@ class RegisterDoctrineEmModifier extends AbstractContentModifier
                     %s:
                         type: yml
                         dir: %s
-                        prefix: %s',
+                        prefix: %s
+                        alias: %s
+                        ',
             $options['bundle'],
             $options['relative_schema_directory'],
-            $options['prefix']
+            $options['prefix'],
+            $options['alias']
         );
 
         $configsFile = new SplFileInfo($targetConfigFilepath, '', '');
         $configsContent = $configsFile->getContents();
 
         // are configs not already registered ?
-        if (strpos($configsContent, $emBundleDefinition) !== false) {
+        if (strpos($configsContent, trim($emBundleDefinition)) !== false) {
             $this->logger->debug(sprintf(
                 'Config file "%s" is already registered into "%s". Abording.',
                 $generatedFile->getFilename(),
