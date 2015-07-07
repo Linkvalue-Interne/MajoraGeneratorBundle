@@ -3,6 +3,7 @@
 namespace Majora\GeneratorBundle\Generator;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Majora\Framework\Inflector\Inflector;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;

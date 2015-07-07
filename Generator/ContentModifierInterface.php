@@ -2,6 +2,7 @@
 
 namespace Majora\GeneratorBundle\Generator;
 
+use Majora\Framework\Inflector\Inflector;
 use Symfony\Component\Finder\SplFileInfo;
 
 /**
