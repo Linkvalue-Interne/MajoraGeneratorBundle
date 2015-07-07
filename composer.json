@@ -19,7 +19,8 @@
     ],
     "require":      {
         "php": ">=5.3.3",
-        "symfony/symfony": "*"
+        "symfony/symfony": "*",
+        "majora/framework-extra-bundle": "dev-master"
     },
     "autoload": {
         "psr-0": { "Majora\\GeneratorBundle": "" }
