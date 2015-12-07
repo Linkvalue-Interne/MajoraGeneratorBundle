@@ -157,13 +157,14 @@ class FileGenerator
      * generate classes from given namespace/entity, using given srcDir (or default one)
      * into given destDir (or default one)
      *
-     * @param string $namespace
+     * @param string $vendor
      * @param string $entity
      * @param string $skeletonsPath
      * @param string $targetPath
      * @param array  $excludedSkeletons
      */
     public function generate(
+        $vendor,
         $namespace,
         $entity,
         $skeletonsPath = null,
@@ -175,8 +176,9 @@ class FileGenerator
         $targetPath    = $targetPath ?: $this->targetPath;
         $finder        = new Finder();
         $inflector     = new Inflector(array(
-            'MajoraEntity'    => $entity,
+            'MajoraVendor'    => $vendor,
             'MajoraNamespace' => $namespace,
+            'MajoraEntity'    => $entity,
         ));
         $modifiersStack = array();
 

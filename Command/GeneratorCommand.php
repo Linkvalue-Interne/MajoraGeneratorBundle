@@ -20,6 +20,7 @@ class GeneratorCommand extends ContainerAwareCommand
             ->setDescription(
                 'Generate whole directory structure from skeletons for given entity and namespace'
             )
+            ->addArgument('vendor', InputArgument::REQUIRED, 'Vendor to generate files into')
             ->addArgument('namespace', InputArgument::REQUIRED, 'Namespace to put entity into')
             ->addArgument('entity', InputArgument::REQUIRED, 'Entity to generate')
             ->addOption('skeletons', null, InputOption::VALUE_REQUIRED, 'Skeleton directory', null)
@@ -31,6 +32,7 @@ class GeneratorCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->getContainer()->get('majora.generator')->generate(
+            $input->getArgument('vendor'),
             $input->getArgument('namespace'),
             $input->getArgument('entity'),
             $input->getOption('skeletons') ?
