@@ -31,6 +31,7 @@ class RegisterBundleModifier extends AbstractContentModifier
 
         $this->resolver = new OptionsResolver();
         $this->resolver->setDefaults(array(
+            'target'          => '/AppKernel.php',
             'kernel_filename' => 'AppKernel.php'
         ));
     }
@@ -71,9 +72,10 @@ class RegisterBundleModifier extends AbstractContentModifier
         );
 
         $kernelFile = new SplFileInfo(
-            sprintf('%s/%s', $this->kernelDir, $options['kernel_filename']),
+            $this->resolveTargetFilePath($options['target'], $generatedFile->getPath()),
             '', ''
         );
+
         $kernelContent = $kernelFile->getContents();
 
         // is bundle not already registered ?

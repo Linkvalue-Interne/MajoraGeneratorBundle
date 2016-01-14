@@ -19,11 +19,13 @@
     ],
     "require":      {
         "php": ">=5.3.3",
-        "symfony/symfony": "*",
+        "symfony/symfony": ">=2.7",
+        "sensio/generator-bundle": ">=2.7",
         "majora/framework-extra-bundle": "dev-master"
     },
     "autoload": {
-        "psr-0": { "Majora\\GeneratorBundle": "" }
-    },
-    "target-dir": "Majora/GeneratorBundle"
+        "psr-4": {
+            "Majora\\Bundle\\": "src/Majora/Bundle"
+        }
+    }
 }
