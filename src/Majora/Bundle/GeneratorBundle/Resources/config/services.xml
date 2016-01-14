@@ -20,9 +20,7 @@
                 <argument key="register_bundle" type="service">
                     <service parent="majora.generator.abstract_modifier"
                         class="Majora\Bundle\GeneratorBundle\Generator\ContentModifier\RegisterBundleModifier"
-                    >
-                        <argument type="service" id="kernel" />
-                    </service>
+                    />
                 </argument>
 
                 <!-- Routing modifier -->
@@ -53,6 +51,8 @@
         <service id="majora.generator.abstract_modifier" abstract="true" public="false">
             <argument type="service" id="filesystem" />
             <argument type="service" id="logger" />
+            <argument>%kernel.environment%</argument>
+            <argument>%kernel.debug%</argument>
             <call method="setUp">
                 <argument>%kernel.root_dir%</argument>
                 <argument type="service" id="file_locator" />

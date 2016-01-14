@@ -5,6 +5,7 @@ namespace Majora\Bundle\GeneratorBundle\Generator\ContentModifier;
 use Majora\Bundle\GeneratorBundle\Generator\ContentModifier\AbstractContentModifier;
 use Majora\Framework\Inflector\Inflector;
 use Psr\Log\LoggerInterface;
+use Sensio\Bundle\GeneratorBundle\Manipulator\KernelManipulator;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -16,6 +17,8 @@ class RegisterBundleModifier extends AbstractContentModifier
 {
     protected $filesystem;
     protected $logger;
+    protected $environment;
+    protected $debug;
     protected $resolver;
 
     /**
@@ -24,14 +27,16 @@ class RegisterBundleModifier extends AbstractContentModifier
      * @param Filesystem      $filesystem
      * @param LoggerInterface $logger
      */
-    public function __construct(Filesystem $filesystem, LoggerInterface $logger)
+    public function __construct(Filesystem $filesystem, LoggerInterface $logger, $environment, $debug)
     {
-        $this->logger     = $logger;
+        $this->logger = $logger;
         $this->filesystem = $filesystem;
+        $this->environment = $environment;
+        $this->debug = $debug;
 
         $this->resolver = new OptionsResolver();
         $this->resolver->setDefaults(array(
-            'target'          => '/AppKernel.php',
+            'target'          => '\\AppKernel',
             'kernel_filename' => 'AppKernel.php'
         ));
     }
@@ -67,40 +72,26 @@ class RegisterBundleModifier extends AbstractContentModifier
             return $fileContent;
         }
 
-        $bundleInclusion = sprintf('new %s\\%s(),',
-            $inBundleMatches[1], $isBundleMatches[1]
+        $kernelManipulator = new KernelManipulator(
+            new $options['target']($this->environment, $this->debug)
         );
 
-        $kernelFile = new SplFileInfo(
-            $this->resolveTargetFilePath($options['target'], $generatedFile->getPath()),
-            '', ''
-        );
-
-        $kernelContent = $kernelFile->getContents();
-
-        // is bundle not already registered ?
-        if (strpos($kernelContent, $bundleInclusion) !== false) {
+        try {
+            $kernelManipulator->addBundle(sprintf('%s\\%s',
+                $inBundleMatches[1],
+                $isBundleMatches[1]
+            ));
+        } catch (\RuntimeException $e) {
             $this->logger->debug(sprintf(
                 'Bundle "%s" is already registered. Abording.',
                 $generatedFile->getFilename()
             ));
+
             return $fileContent;
         }
 
-        $this->filesystem->dumpFile(
-            $kernelFile->getPathname(),
-            preg_replace(
-                '/(Bundle\(\)\,)(\n[\s]+\);)/',
-                sprintf("$1
-            %s$2",
-                    $bundleInclusion
-                ),
-                $kernelContent
-            )
-        );
-
-        $this->logger->info(sprintf('file updated : %s',
-            $kernelFile->getPathname()
+        $this->logger->info(sprintf('kernel updated : %s',
+            $kernelManipulator->getFilename()
         ));
 
         return $fileContent;
