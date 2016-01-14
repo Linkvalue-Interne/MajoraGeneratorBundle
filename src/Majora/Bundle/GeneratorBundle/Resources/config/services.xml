@@ -7,7 +7,7 @@
     <services>
 
         <!-- Generator -->
-        <service id="majora.generator" class="Majora\GeneratorBundle\Generator\FileGenerator">
+        <service id="majora.generator" class="Majora\Bundle\GeneratorBundle\Generator\FileGenerator">
             <argument><!-- skeletons directory path --></argument>
             <argument><!-- generated files directory path --></argument>
             <argument type="service" id="filesystem" />
@@ -19,28 +19,30 @@
                 <!-- App kernel modifier -->
                 <argument key="register_bundle" type="service">
                     <service parent="majora.generator.abstract_modifier"
-                        class="Majora\GeneratorBundle\Generator\ContentModifier\RegisterBundleModifier"
-                    />
+                        class="Majora\Bundle\GeneratorBundle\Generator\ContentModifier\RegisterBundleModifier"
+                    >
+                        <argument type="service" id="kernel" />
+                    </service>
                 </argument>
 
                 <!-- Routing modifier -->
                 <argument key="include_routing" type="service">
                     <service parent="majora.generator.abstract_modifier"
-                        class="Majora\GeneratorBundle\Generator\ContentModifier\UpdateRoutingModifier"
+                        class="Majora\Bundle\GeneratorBundle\Generator\ContentModifier\UpdateRoutingModifier"
                     />
                 </argument>
 
                 <!-- Xml Services importer -->
                 <argument key="import_xml_services" type="service">
                     <service parent="majora.generator.abstract_modifier"
-                        class="Majora\GeneratorBundle\Generator\ContentModifier\ImportXmlServicesModifier"
+                        class="Majora\Bundle\GeneratorBundle\Generator\ContentModifier\ImportXmlServicesModifier"
                     />
                 </argument>
 
                 <!-- Doctrine Em modifier -->
                 <argument key="register_doctrine_em" type="service">
                     <service parent="majora.generator.abstract_modifier"
-                        class="Majora\GeneratorBundle\Generator\ContentModifier\RegisterDoctrineEmModifier"
+                        class="Majora\Bundle\GeneratorBundle\Generator\ContentModifier\RegisterDoctrineEmModifier"
                     />
                 </argument>
 

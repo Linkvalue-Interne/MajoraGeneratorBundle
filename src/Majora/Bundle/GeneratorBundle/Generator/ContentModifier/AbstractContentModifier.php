@@ -1,8 +1,8 @@
 <?php
 
-namespace Majora\GeneratorBundle\Generator\ContentModifier;
+namespace Majora\Bundle\GeneratorBundle\Generator\ContentModifier;
 
-use Majora\GeneratorBundle\Generator\ContentModifierInterface;
+use Majora\Bundle\GeneratorBundle\Generator\ContentModifierInterface;
 use Symfony\Component\Config\FileLocatorInterface;
 
 /**

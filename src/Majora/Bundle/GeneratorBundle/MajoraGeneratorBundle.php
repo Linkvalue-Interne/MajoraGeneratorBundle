@@ -1,8 +1,8 @@
 <?php
 
-namespace Majora\GeneratorBundle;
+namespace Majora\Bundle\GeneratorBundle;
 
-use Majora\GeneratorBundle\DependencyInjection\Compiler\ContentModifiersPass;
+use Majora\Bundle\GeneratorBundle\DependencyInjection\Compiler\ContentModifiersPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

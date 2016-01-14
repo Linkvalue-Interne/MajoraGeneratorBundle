@@ -1,6 +1,6 @@
 <?php
 
-namespace Majora\GeneratorBundle\DependencyInjection\Compiler;
+namespace Majora\Bundle\GeneratorBundle\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Majora\GeneratorBundle\Generator;
+namespace Majora\Bundle\GeneratorBundle\Generator;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Majora\Framework\Inflector\Inflector;

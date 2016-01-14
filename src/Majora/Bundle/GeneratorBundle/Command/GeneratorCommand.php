@@ -1,6 +1,6 @@
 <?php
 
-namespace Majora\GeneratorBundle\Command;
+namespace Majora\Bundle\GeneratorBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
