@@ -123,7 +123,7 @@ class FileGenerator
         }
 
         $this->filesystem->mkdir($destDirPath);
-        $this->logger->info(sprintf('dir created : %s', $destDirPath));
+        $this->logger->info(sprintf('dir created: %s', $destDirPath));
     }
 
     /**
@@ -241,7 +241,7 @@ class FileGenerator
 
             $this->filesystem->dumpFile($generatedFilePath, $fileContent);
 
-            $this->logger->info(sprintf('file %s : %s',
+            $this->logger->info(sprintf('file %s: %s',
                 $forceGeneration ? 'forced' : 'created',
                 $generatedFilePath
             ));

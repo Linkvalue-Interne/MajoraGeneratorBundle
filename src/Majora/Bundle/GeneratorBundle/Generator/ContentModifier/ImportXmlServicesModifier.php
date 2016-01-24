@@ -2,7 +2,6 @@
 
 namespace Majora\Bundle\GeneratorBundle\Generator\ContentModifier;
 
-use Majora\Bundle\GeneratorBundle\Generator\ContentModifier\AbstractContentModifier;
 use Majora\Framework\Inflector\Inflector;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
