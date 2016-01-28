@@ -31,20 +31,22 @@ class GeneratorCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getContainer()->get('majora.generator')->generate(
+        $container = $this->getContainer();
+
+        $container->get('majora.generator')->generate(
             $input->getArgument('vendor'),
             $input->getArgument('namespace'),
             $input->getArgument('entity'),
             $input->getOption('skeletons') ?
                 realpath(sprintf('%s/../%s',
-                    $this->getContainer()->getParameter('kernel.root_dir'),
+                    $container->getParameter('kernel.root_dir'),
                     $input->getOption('skeletons')
                 )) :
                 null
             ,
             $input->getOption('target') ?
                 realpath(sprintf('%s/../%s',
-                    $this->getContainer()->getParameter('kernel.root_dir'),
+                    $container->getParameter('kernel.root_dir'),
                     $input->getOption('target')
                 )) :
                 null
