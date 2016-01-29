@@ -35,6 +35,7 @@ class UpdateRoutingModifier extends AbstractContentModifier
         $this->resolver->setDefaults(array(
             'target' => '/config/routing.yml',
             'prefix' => null,
+            'host' => null,
         ));
         $this->resolver->setRequired(array(
             'resource', 'route'
@@ -58,9 +59,13 @@ class UpdateRoutingModifier extends AbstractContentModifier
         $routing = sprintf('
 %s:
     resource: "%s"
-    %s',
+    %s%s',
             $inflector->translate($options['route']),
             $inflector->translate($options['resource']),
+            is_null($options['host']) ? '' : sprintf(
+                "host: %s\n",
+                $options['host']
+            ),
             is_null($options['prefix']) ? '' : sprintf(
                 "prefix: %s\n",
                 $inflector->translate($options['prefix'])
