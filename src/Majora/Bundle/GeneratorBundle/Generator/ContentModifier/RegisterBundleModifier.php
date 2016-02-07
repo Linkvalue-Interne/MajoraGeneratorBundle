@@ -12,7 +12,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * Service for updating kernel from a bundle class.
  */
-class RegisterBundleModifier extends AbstractContentModifier
+class RegisterBundleModifier extends AbstractPhpClassContentModifier
 {
     protected $filesystem;
     protected $logger;
@@ -45,54 +45,28 @@ class RegisterBundleModifier extends AbstractContentModifier
      */
     public function modify(SplFileInfo $generatedFile, array $data, Inflector $inflector, SplFileInfo $templateFile)
     {
-        $options     = $this->resolver->resolve($data);
-        $fileContent = $generatedFile->getContents();
-
-        // current file is a bundle ?
-        $isInBundle = preg_match(
-            sprintf('/namespace (.*%s.*Bundle);/', $inflector->translate('MajoraNamespace')),
-            $fileContent,
-            $inBundleMatches
-        );
-        $isABundle = preg_match(
-            sprintf(
-                '/class (([\w]*)%s[\w]*Bundle) extends [\w]*Bundle/',
-                $inflector->translate('MajoraNamespace')
-            ),
-            $fileContent,
-            $isBundleMatches
-        );
-        if (!$isInBundle || !$isABundle) {
-            $this->logger->notice(sprintf(
-                'Try to register "%s" file into Kernel which isnt a bundle. Abording.',
-                $generatedFile->getFilename()
-            ));
-
-            return $fileContent;
-        }
+        $options    = $this->resolver->resolve($data);
+        $bundleInfo = $this->retrieveBundleInfoFromGeneratedFile($generatedFile, $inflector);
 
         $kernelManipulator = new KernelManipulator(
             new $options['target']($this->environment, $this->debug)
         );
 
         try {
-            $kernelManipulator->addBundle(sprintf('%s\\%s',
-                $inBundleMatches[1],
-                $isBundleMatches[1]
-            ));
+            $kernelManipulator->addBundle($bundleInfo->getFQCN());
         } catch (\RuntimeException $e) {
             $this->logger->debug(sprintf(
-                'Bundle "%s" is already registered. Abording.',
-                $generatedFile->getFilename()
+                'Bundle "%s" is already registered. Aborting.',
+                $bundleInfo->getFQCN()
             ));
 
-            return $fileContent;
+            return $generatedFile->getContents();
         }
 
         $this->logger->info(sprintf('kernel updated : %s',
             $kernelManipulator->getFilename()
         ));
 
-        return $fileContent;
+        return $generatedFile->getContents();
     }
 }
