@@ -9,7 +9,7 @@ use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Service for updating doctrine em config with current bundle
+ * Service for updating doctrine em config with current bundle.
  */
 class RegisterDoctrineEmModifier extends AbstractContentModifier
 {

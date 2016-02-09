@@ -33,8 +33,10 @@ abstract class AbstractContentModifier implements ContentModifierInterface
      *
      * @param  string $target
      * @param  string $basePath
+     *
      * @return string
-     * @throws InvalidArgumentException if path cannot be resolved
+     *
+     * @throws \InvalidArgumentException if path cannot be resolved
      */
     protected function resolveTargetFilePath($target, $basePath)
     {
@@ -61,7 +63,7 @@ abstract class AbstractContentModifier implements ContentModifierInterface
 
         if (!is_writable($targetPath)) {
             throw new \InvalidArgumentException(sprintf(
-                'Unavailable to resolve "%s" target, resolved into "%s" file path which is unwritable.',
+                'Unable to resolve "%s" target, resolved into "%s" file path which is not writable.',
                 $target,
                 $targetPath
             ));

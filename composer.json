@@ -17,11 +17,14 @@
             "homepage": "http://link-value.fr/"
         }
     ],
-    "require":      {
+    "require": {
         "php": ">=5.3.3",
         "symfony/symfony": ">=2.7",
         "sensio/generator-bundle": ">=2.7",
         "majora/framework-extra-bundle": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
     },
     "autoload": {
         "psr-4": {
