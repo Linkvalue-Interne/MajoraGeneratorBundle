@@ -3,6 +3,7 @@
 namespace Majora\Bundle\GeneratorBundle\Tests\Generator\ContentModifier;
 
 use Majora\Bundle\GeneratorBundle\FileInfo\BundleInfo;
+use Majora\Bundle\GeneratorBundle\FileInfo\PhpClassInfo;
 use Majora\Bundle\GeneratorBundle\Tests\Stubs\Generator\ContentModifier\AbstractPhpClassContentModifierStub;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -12,9 +13,43 @@ use Symfony\Component\Finder\SplFileInfo;
 class AbstractPhpClassContentModifierTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * Tests retrieveBundleInfoFromGeneratedFile.
+     *
+     * @test
+     * @dataProvider retrieveBundleInfoFromGeneratedFileProvider
+     */
+    public function testRetrieveBundleInfoFromGeneratedFile($generatedFile, $inflector, $expectedBundleInfo, $expectedException = null)
+    {
+        if(!is_null($expectedException)){
+            $this->setExpectedException($expectedException);
+        }
+
+        $actualBundleInfo = (new AbstractPhpClassContentModifierStub())->publicRetrieveBundleInfoFromGeneratedFile($generatedFile, $inflector);
+
+        $this->assertEquals($expectedBundleInfo, $actualBundleInfo);
+    }
+
+    /**
+     * Tests retrievePhpClassInfoFromGeneratedFile.
+     *
+     * @test
+     * @dataProvider retrievePhpClassInfoFromGeneratedFileProvider
+     */
+    public function testRetrievePhpClassInfoFromGeneratedFile($generatedFile, $inflector, $expectedPhpClassInfo, $expectedException = null)
+    {
+        if(!is_null($expectedException)){
+            $this->setExpectedException($expectedException);
+        }
+
+        $actualPhpClassInfo = (new AbstractPhpClassContentModifierStub())->publicRetrievePhpClassInfoFromGeneratedFile($generatedFile, $inflector);
+
+        $this->assertEquals($expectedPhpClassInfo, $actualPhpClassInfo);
+    }
+
+    /**
      * Data provider for testRetrieveBundleInfoFromGeneratedFile.
      */
-    public function retrieveBundleInfoFromGeneratedFileDataProvider()
+    public function retrieveBundleInfoFromGeneratedFileProvider()
     {
         return array(
 
@@ -25,13 +60,19 @@ class AbstractPhpClassContentModifierTest extends \PHPUnit_Framework_TestCase
                 'Majora\Bundle\GeneratorBundle\Generator\Exception\UnsupportedFileForContentModifierException',
             ),
 
+            'file is a PHP file but not a PHP class file' => array(
+                $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/FileNotPhpClassStub.php')),
+                $this->getInflectorMock(),
+                null,
+                'Majora\Bundle\GeneratorBundle\Generator\Exception\UnsupportedFileForContentModifierException',
+            ),
+
             'file is a bundle class in a bundle not at the root of "src" directory' => array(
                 $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/FileIsBundleNotAtRootSrcStub.php')),
                 $this->getInflectorMock(),
                 (new BundleInfo())
                     ->setNamespace('SuperVendor\\SuperNamespace\\Bundle\\SuperBundle')
-                    ->setClassName('SuperVendorSuperNamespaceSuperBundle')
-                ,
+                    ->setClassName('SuperVendorSuperNamespaceSuperBundle'),
             ),
 
             'file is in a bundle not at the root of "src" directory' => array(
@@ -39,8 +80,7 @@ class AbstractPhpClassContentModifierTest extends \PHPUnit_Framework_TestCase
                 $this->getInflectorMock(),
                 (new BundleInfo())
                     ->setNamespace('SuperVendor\\SuperNamespace\\Bundle\\SuperBundle')
-                    ->setClassName('SuperVendorSuperNamespaceSuperBundle')
-                ,
+                    ->setClassName('SuperVendorSuperNamespaceSuperBundle'),
             ),
 
             'file is a bundle class in a bundle at the root of "src" directory' => array(
@@ -48,8 +88,7 @@ class AbstractPhpClassContentModifierTest extends \PHPUnit_Framework_TestCase
                 $this->getInflectorMock(),
                 (new BundleInfo())
                     ->setNamespace('SuperBundle')
-                    ->setClassName('SuperBundle')
-                ,
+                    ->setClassName('SuperBundle'),
             ),
 
             'file is in a bundle at the root of "src" directory' => array(
@@ -57,8 +96,7 @@ class AbstractPhpClassContentModifierTest extends \PHPUnit_Framework_TestCase
                 $this->getInflectorMock(),
                 (new BundleInfo())
                     ->setNamespace('SuperBundle')
-                    ->setClassName('SuperBundle')
-                ,
+                    ->setClassName('SuperBundle'),
             ),
 
             'file is not in a bundle' => array(
@@ -72,20 +110,67 @@ class AbstractPhpClassContentModifierTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests retrieveBundleInfoFromGeneratedFile.
-     *
-     * @test
-     * @dataProvider retrieveBundleInfoFromGeneratedFileDataProvider
+     * Data provider for testRetrievePhpClassInfoFromGeneratedFile.
      */
-    public function testRetrieveBundleInfoFromGeneratedFile($generatedFile, $inflector, $expectedBundleInfo, $expectedException = null)
+    public function retrievePhpClassInfoFromGeneratedFileProvider()
     {
-        if(!is_null($expectedException)){
-            $this->setExpectedException($expectedException);
-        }
+        return array(
 
-        $actualBundleInfo = (new AbstractPhpClassContentModifierStub())->publicRetrieveBundleInfoFromGeneratedFile($generatedFile, $inflector);
+            'file is not a PHP file' => array(
+                $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/RandomTextFileStub.txt')),
+                $this->getInflectorMock(),
+                null,
+                'Majora\Bundle\GeneratorBundle\Generator\Exception\UnsupportedFileForContentModifierException',
+            ),
 
-        $this->assertEquals($expectedBundleInfo, $actualBundleInfo);
+            'file is a PHP file but not a PHP class file' => array(
+                $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/FileNotPhpClassStub.php')),
+                $this->getInflectorMock(),
+                null,
+                'Majora\Bundle\GeneratorBundle\Generator\Exception\UnsupportedFileForContentModifierException',
+            ),
+
+            'file is a bundle class in a bundle not at the root of "src" directory' => array(
+                $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/FileIsBundleNotAtRootSrcStub.php')),
+                $this->getInflectorMock(),
+                (new PhpClassInfo())
+                    ->setNamespace('SuperVendor\\SuperNamespace\\Bundle\\SuperBundle')
+                    ->setClassName('SuperVendorSuperNamespaceSuperBundle'),
+            ),
+
+            'file is in a bundle not at the root of "src" directory' => array(
+                $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/FileInBundleNotAtRootSrcStub.php')),
+                $this->getInflectorMock(),
+                (new PhpClassInfo())
+                    ->setNamespace('SuperVendor\\SuperNamespace\\Bundle\\SuperBundle\\Entity')
+                    ->setClassName('Superman'),
+            ),
+
+            'file is a bundle class in a bundle at the root of "src" directory' => array(
+                $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/FileIsBundleAtRootSrcStub.php')),
+                $this->getInflectorMock(),
+                (new PhpClassInfo())
+                    ->setNamespace('SuperBundle')
+                    ->setClassName('SuperBundle'),
+            ),
+
+            'file is in a bundle at the root of "src" directory' => array(
+                $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/FileInBundleAtRootSrcStub.php')),
+                $this->getInflectorMock(),
+                (new PhpClassInfo())
+                    ->setNamespace('SuperBundle\\Entity')
+                    ->setClassName('Superman'),
+            ),
+
+            'file is not in a bundle' => array(
+                $this->getSplFileInfoMock(realpath(__DIR__ . '/../../Stubs/FileNotInBundleStub.php')),
+                $this->getInflectorMock(),
+                (new PhpClassInfo())
+                    ->setNamespace('SuperVendor\\SuperNamespace\\Component\\Domain')
+                    ->setClassName('SuperDomain'),
+            ),
+
+        );
     }
 
     /**
