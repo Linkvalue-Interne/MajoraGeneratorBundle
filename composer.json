@@ -1,7 +1,6 @@
 {
     "name":         "majora/generator-bundle",
-    "version":      "1.0",
-    "description":  "Config, code and template generator for Symfony 2",
+    "description":  "Config, code and template generator, with custom integrations for Symfony Framework",
     "keywords":     ["generator", "Symfony", "bundle"],
     "type":         "symfony-bundle",
     "license":      "MIT",
@@ -18,13 +17,12 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3",
-        "symfony/symfony": ">=2.7",
+        "php": ">=5.6",
         "sensio/generator-bundle": ">=2.7",
-        "majora/framework-extra-bundle": "dev-master"
+        "majora/framework-extra-bundle": ">=1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^4.8"
+        "phpunit/phpunit": "~5.1"
     },
     "autoload": {
         "psr-4": {
