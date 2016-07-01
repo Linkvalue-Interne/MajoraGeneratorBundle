@@ -69,13 +69,17 @@ class ImportXmlServicesModifier extends AbstractContentModifier
             return $generatedFile->getContents();
         }
 
+        if($import){
+            $servicesContent = preg_replace(
+                '/(?:<!--)?[\s\r\n]*<imports>([\S\s\r\n]*)<\/imports>[\s\r\n]*(?:-->)?/',
+                "\n    <imports>".'${1}    '.$import."\n    </imports>",
+                $servicesContent
+            );
+        }
+
         $this->filesystem->dumpFile(
             $servicesFile->getRealpath(),
-            str_replace(
-                '    </imports>',
-                sprintf("        %s\n    </imports>", $import),
-                $servicesContent
-            )
+            $servicesContent
         );
 
         $this->logger->info(sprintf('file updated : %s',
