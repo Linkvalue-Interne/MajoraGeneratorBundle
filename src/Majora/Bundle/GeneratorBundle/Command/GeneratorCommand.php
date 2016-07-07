@@ -37,20 +37,8 @@ class GeneratorCommand extends ContainerAwareCommand
             $input->getArgument('vendor'),
             $input->getArgument('namespace'),
             $input->getArgument('entity'),
-            $input->getOption('skeletons') ?
-                realpath(sprintf('%s/../%s',
-                    $container->getParameter('kernel.root_dir'),
-                    $input->getOption('skeletons')
-                )) :
-                null
-            ,
-            $input->getOption('target') ?
-                realpath(sprintf('%s/../%s',
-                    $container->getParameter('kernel.root_dir'),
-                    $input->getOption('target')
-                )) :
-                null
-            ,
+            $input->getOption('skeletons'),
+            $input->getOption('target'),
             $input->getOption('exclude') ?
                 explode(',', $input->getOption('exclude')) :
                 array()
