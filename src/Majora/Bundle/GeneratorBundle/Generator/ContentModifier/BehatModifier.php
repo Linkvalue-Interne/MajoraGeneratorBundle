@@ -37,6 +37,13 @@ class BehatModifier extends AbstractPhpClassContentModifier
         $this->resolver->setDefaults(array(
             'target' => '/config/behat.yml',
         ));
+        $this->resolver->setRequired(array(
+            'target',
+            'path',
+            'context',
+            'domain',
+            'loader',
+        ));
     }
 
     /**
@@ -47,12 +54,12 @@ class BehatModifier extends AbstractPhpClassContentModifier
         $options    = $this->resolver->resolve($data);
         $bundleInfo = $this->retrieveBundleInfoFromGeneratedFile($generatedFile, $inflector);
 
-        var_dump($bundleInfo);
-
         $targetConfigFilepath = $this->resolveTargetFilePath(
             $options['target'],
             $generatedFile->getPath()
         );
+
+        var_dump($options);
 
         $configsFile = new SplFileInfo($targetConfigFilepath, '', '');
         $configsContent = $configsFile->getContents();
@@ -64,16 +71,17 @@ class BehatModifier extends AbstractPhpClassContentModifier
             type: symfony_bundle
             bundle: %1$s
             paths:
-                - %%paths.base%%/src/%2$s/Features
+                - %2$s
             contexts:
-                - %3$s\Features\Context\Person2Context:
-                    domain: \'@%4$s.domain\'
-                    loader: \'@%4$s.loader\'
+                - %3$s:
+                    domain: \'@%4$s\'
+                    loader: \'@%5$s\'
                     em: \'@doctrine.orm.entity_manager\'',
             $bundleInfo->getClassName(),
-            str_replace('\\','/',$bundleInfo->getNamespace()),
-            $bundleInfo->getNamespace(),
-            strtolower($namespaceArgs[0]).'.'.strtolower(end($namespaceArgs))
+            $options['path'],
+            $options['context'],
+            $options['domain'],
+            $options['loader']
         );
 
         $this->filesystem->dumpFile(
