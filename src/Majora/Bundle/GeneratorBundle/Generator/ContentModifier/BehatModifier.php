@@ -37,7 +37,6 @@ class BehatModifier extends AbstractPhpClassContentModifier
         $this->resolver->setDefaults(array(
             'target' => '/config/behat.yml',
         ));
-<<<<<<< HEAD
         $this->resolver->setRequired(array(
             'target',
             'path',
