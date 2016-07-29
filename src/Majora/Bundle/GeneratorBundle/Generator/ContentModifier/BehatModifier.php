@@ -37,6 +37,7 @@ class BehatModifier extends AbstractPhpClassContentModifier
         $this->resolver->setDefaults(array(
             'target' => '/config/behat.yml',
         ));
+<<<<<<< HEAD
         $this->resolver->setRequired(array(
             'target',
             'path',
@@ -60,7 +61,6 @@ class BehatModifier extends AbstractPhpClassContentModifier
         );
 
         var_dump($options);
-
         $configsFile = new SplFileInfo($targetConfigFilepath, '', '');
         $configsContent = $configsFile->getContents();
 
