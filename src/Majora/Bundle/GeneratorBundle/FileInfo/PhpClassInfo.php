@@ -46,6 +46,16 @@ class PhpClassInfo
     }
 
     /**
+     * Get Namespace as path (with slashes instead of backslashes).
+     *
+     * @return string
+     */
+    public function getNamespaceAsPath()
+    {
+        return str_replace('\\', '/', $this->getNamespace());
+    }
+
+    /**
      * @param string $namespace
      *
      * @return self

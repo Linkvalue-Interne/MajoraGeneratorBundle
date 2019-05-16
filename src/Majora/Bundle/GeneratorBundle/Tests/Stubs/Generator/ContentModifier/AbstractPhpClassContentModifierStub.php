@@ -23,4 +23,12 @@ class AbstractPhpClassContentModifierStub extends AbstractPhpClassContentModifie
     {
         return $this->retrieveBundleInfoFromGeneratedFile($generatedFile, $inflector);
     }
+
+    /**
+     * Increases visibility of retrievePhpClassInfoFromGeneratedFile() method to be tested
+     */
+    public function publicRetrievePhpClassInfoFromGeneratedFile($generatedFile, $inflector)
+    {
+        return $this->retrievePhpClassInfoFromGeneratedFile($generatedFile, $inflector);
+    }
 }
